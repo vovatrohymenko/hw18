@@ -3,19 +3,18 @@ let studentsData = [];
 const getStudentsBtn = document.querySelector("#get-students-btn");
 const addStudentForm = document.querySelector(".add-student-form");
 
-function getStudents() {
-  fetch("students.json")
-    .then((res) => res.json())
-    .then((data) => {
-      studentsData = data.students;
-      renderStudents(studentsData);
-    })
-    .catch((err) => {
-      console.error(err);
-      alert("Не вдалося завантажити студентів");
-    });
+async function getStudents() {
+  try {
+    const res = await fetch("students.json");
+    if (!res.ok) throw new Error(`Помилка ${res.status}`);
+    const data = await res.json();
+    studentsData = data.students;
+    renderStudents(studentsData);
+  } catch (err) {
+    console.error(err);
+    alert("Не вдалося завантажити студентів");
+  }
 }
-
 function renderStudents(students) {
   const tbody = document.querySelector("#students-table tbody");
   tbody.innerHTML = "";
@@ -47,7 +46,7 @@ function renderStudents(students) {
   });
 }
 
-function addStudent(e) {
+async function addStudent(e) {
   e.preventDefault();
   const form = e.target;
 
@@ -64,12 +63,17 @@ function addStudent(e) {
     isEnrolled: form.querySelector("#isEnrolled").checked,
   };
 
-  studentsData.push(newStudent);
-  renderStudents(studentsData);
-  form.reset();
+  try {
+    studentsData.push(newStudent);
+    renderStudents(studentsData);
+    form.reset();
+  } catch (err) {
+    console.error(err);
+    alert("Не вдалося додати студента");
+  }
 }
 
-function updateStudent(id) {
+async function updateStudent(id) {
   const student = studentsData.find((s) => s.id === id);
   if (!student) return;
 
@@ -87,21 +91,34 @@ function updateStudent(id) {
     isEnrolled: confirm("Студент записаний?"),
   };
 
-  student.name = updatedData.name;
-  student.age = updatedData.age;
-  student.course = updatedData.course;
-  student.skills = updatedData.skills;
-  student.email = updatedData.email;
-  student.isEnrolled = updatedData.isEnrolled;
+  try {
+    student.name = updatedData.name;
+    student.age = updatedData.age;
+    student.course = updatedData.course;
+    student.skills = updatedData.skills;
+    student.email = updatedData.email;
+    student.isEnrolled = updatedData.isEnrolled;
 
-  renderStudents(studentsData);
+    renderStudents(studentsData);
+  } catch (err) {
+    console.error(err);
+    alert("Не вдалося оновити студента");
+  }
 }
 
-function deleteStudent(id) {
+async function deleteStudent(id) {
   if (!confirm("Ви впевнені, що хочете видалити цього студента?")) return;
-  studentsData = studentsData.filter((s) => s.id !== id);
-  renderStudents(studentsData);
+
+  try {
+    studentsData = studentsData.filter((s) => s.id !== id);
+    renderStudents(studentsData);
+  } catch (err) {
+    console.error(err);
+    alert("Не вдалося видалити студента");
+  }
 }
 
 getStudentsBtn.addEventListener("click", getStudents);
 addStudentForm.addEventListener("submit", addStudent);
+
+getStudents();
